@@ -3,10 +3,12 @@ package com.game.controller;
 import com.game.entity.Player;
 import com.game.entity.Profession;
 import com.game.entity.Race;
-import com.game.service.GameService;
+import com.game.service.PlayerServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,41 +20,68 @@ import java.util.List;
 @RequestMapping(value = "/rest", produces = {"application/json"})
 public class PlayerController {
 
-    @Autowired
-    private GameService gameService;
+    private final PlayerServiceImpl playerService;
 
+    @Autowired
+    public PlayerController(PlayerServiceImpl playerService) {
+        this.playerService = playerService;
+    }
+    
     @GetMapping("/players")
-    public List<Player> findAllOrAny(
+    public List<Player> getAllPlayers(
              @RequestParam (required = false) String name,
              @RequestParam (required = false) String title,
              @RequestParam (required = false) Race race,
              @RequestParam (required = false) Profession profession,
              @RequestParam (required = false) Long after,
              @RequestParam (required = false) Long before,
-             @RequestParam (required = false) Boolean banned,
              @RequestParam (required = false) Integer minExperience,
              @RequestParam (required = false) Integer maxExperience,
              @RequestParam (required = false) Integer minLevel,
              @RequestParam (required = false) Integer maxLevel,
+             @RequestParam (required = false) Boolean banned,
              @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
              @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
-             @RequestParam(value = "order", required = false) PlayerOrder order
+             @RequestParam(value = "order", required = false, defaultValue = "ID") PlayerOrder order
     ) {
-        Pageable page = PageRequest.of(pageNumber, pageSize);
-        if (name != null) {
-            return gameService.findByName(name, page);
-        } else {
-            return gameService.findAll(page);
-        }
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(order.getFieldName()));
+        return playerService.getAllPlayers(
+                        Specification.where(playerService.filterByName(name)
+                                .and(playerService.filterByTitle(title)))
+                                .and(playerService.filterByRace(race))
+                                .and(playerService.filterByProfession(profession))
+                                .and(playerService.filterByDate(before, after))
+                                .and(playerService.filterByExperience(minExperience, maxExperience))
+                                .and(playerService.filterByLevel(minLevel, maxLevel))
+                                .and(playerService.filterByAccessRestriction(banned)), pageable)
+                .getContent();
+
     }
 
     @GetMapping("/players/count")
-    public long getPlayersCount(
-            @RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "50") int pageSize
+    public Integer getPlayersCount(
+            @RequestParam (required = false) String name,
+            @RequestParam (required = false) String title,
+            @RequestParam (required = false) Race race,
+            @RequestParam (required = false) Profession profession,
+            @RequestParam (required = false) Long after,
+            @RequestParam (required = false) Long before,
+            @RequestParam (required = false) Integer minExperience,
+            @RequestParam (required = false) Integer maxExperience,
+            @RequestParam (required = false) Integer minLevel,
+            @RequestParam (required = false) Integer maxLevel,
+            @RequestParam (required = false) Boolean banned
     ) {
-        Pageable page = PageRequest.of(pageNumber, pageSize);
-        return gameService.count();
+        return playerService.getAllPlayers(
+                        Specification.where(playerService.filterByName(name)
+                                .and(playerService.filterByTitle(title)))
+                                .and(playerService.filterByRace(race))
+                                .and(playerService.filterByProfession(profession))
+                                .and(playerService.filterByDate(before, after))
+                                .and(playerService.filterByExperience(minExperience, maxExperience))
+                                .and(playerService.filterByLevel(minLevel, maxLevel))
+                                .and(playerService.filterByAccessRestriction(banned)))
+                .size();
     }
 
 }
