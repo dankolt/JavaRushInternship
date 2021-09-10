@@ -9,10 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -82,6 +79,12 @@ public class PlayerController {
                                 .and(playerService.filterByLevel(minLevel, maxLevel))
                                 .and(playerService.filterByAccessRestriction(banned)))
                 .size();
+    }
+
+    @GetMapping("/players/{id}")
+    public Player getPlayer(@PathVariable("id") String id) {
+        Long longId = playerService.checkAndParseId(id);
+        return playerService.getPlayer(longId);
     }
 
 }

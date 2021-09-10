@@ -3,7 +3,11 @@ package com.game.service;
 import com.game.entity.Player;
 import com.game.entity.Profession;
 import com.game.entity.Race;
+import com.game.exception.BadRequestException;
+import com.game.exception.NotFoundException;
 import com.game.repository.PlayerRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +21,7 @@ import java.util.List;
 public class PlayerServiceImpl implements PlayerService {
 
     private final PlayerRepository playerRepository;
+    private final Logger log = LoggerFactory.getLogger(PlayerServiceImpl.class);
 
     @Autowired
     public PlayerServiceImpl(PlayerRepository playerRepository) {
@@ -101,12 +106,46 @@ public class PlayerServiceImpl implements PlayerService {
     @Override
     public Specification<Player> filterByAccessRestriction(Boolean banned) {
         return (r, q, cb) -> {
-            if ( banned == null)
+            if (banned == null)
                 return null;
             if (banned)
                 return cb.isTrue(r.get("banned"));
             else return cb.isFalse(r.get("banned"));
         };
+    }
+
+    @Override
+    public Player getPlayer(Long id) {
+       return playerRepository.findById(id).orElseThrow(NotFoundException::new);
+    }
+
+    public Long checkAndParseId(String id) {
+        /*Не валидным считается id, если он:
+        - не числовой
+        - не целое число
+        - не положительный*/
+        String logMessage = "Bad query parameter: id = {}";
+        Long longId;
+
+        if (id == null || id.equals("")) {
+            log.error(logMessage, id);
+            throw new BadRequestException("Incorrect parameter: Id");
+        }
+
+        try {
+            longId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            log.error(logMessage, id);
+            throw new BadRequestException("Id must be positive integer", e);
+        }
+
+        if (longId <= 0) {
+            log.error(logMessage, id);
+            throw new BadRequestException("Id must be positive integer");
+        }
+
+        return longId;
+
     }
 
 }

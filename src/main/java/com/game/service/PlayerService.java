@@ -31,4 +31,5 @@ public interface PlayerService {
 
     Specification<Player> filterByAccessRestriction(Boolean banned);
 
+    Player getPlayer(Long longId);
 }
