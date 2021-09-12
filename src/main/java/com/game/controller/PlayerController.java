@@ -25,21 +25,20 @@ public class PlayerController {
     }
     
     @GetMapping("/players")
-    public List<Player> getAllPlayers(
-             @RequestParam (required = false) String name,
-             @RequestParam (required = false) String title,
-             @RequestParam (required = false) Race race,
-             @RequestParam (required = false) Profession profession,
-             @RequestParam (required = false) Long after,
-             @RequestParam (required = false) Long before,
-             @RequestParam (required = false) Integer minExperience,
-             @RequestParam (required = false) Integer maxExperience,
-             @RequestParam (required = false) Integer minLevel,
-             @RequestParam (required = false) Integer maxLevel,
-             @RequestParam (required = false) Boolean banned,
-             @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
-             @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
-             @RequestParam(value = "order", required = false, defaultValue = "ID") PlayerOrder order
+    public List<Player> getAllPlayers(@RequestParam (required = false) String name,
+                                      @RequestParam (required = false) String title,
+                                      @RequestParam (required = false) Race race,
+                                      @RequestParam (required = false) Profession profession,
+                                      @RequestParam (required = false) Long after,
+                                      @RequestParam (required = false) Long before,
+                                      @RequestParam (required = false) Integer minExperience,
+                                      @RequestParam (required = false) Integer maxExperience,
+                                      @RequestParam (required = false) Integer minLevel,
+                                      @RequestParam (required = false) Integer maxLevel,
+                                      @RequestParam (required = false) Boolean banned,
+                                      @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
+                                      @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
+                                      @RequestParam(value = "order", required = false, defaultValue = "ID") PlayerOrder order
     ) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(order.getFieldName()));
         return playerService.getAllPlayers(
@@ -56,18 +55,17 @@ public class PlayerController {
     }
 
     @GetMapping("/players/count")
-    public Integer getPlayersCount(
-            @RequestParam (required = false) String name,
-            @RequestParam (required = false) String title,
-            @RequestParam (required = false) Race race,
-            @RequestParam (required = false) Profession profession,
-            @RequestParam (required = false) Long after,
-            @RequestParam (required = false) Long before,
-            @RequestParam (required = false) Integer minExperience,
-            @RequestParam (required = false) Integer maxExperience,
-            @RequestParam (required = false) Integer minLevel,
-            @RequestParam (required = false) Integer maxLevel,
-            @RequestParam (required = false) Boolean banned
+    public Integer getPlayersCount(@RequestParam (required = false) String name,
+                                   @RequestParam (required = false) String title,
+                                   @RequestParam (required = false) Race race,
+                                   @RequestParam (required = false) Profession profession,
+                                   @RequestParam (required = false) Long after,
+                                   @RequestParam (required = false) Long before,
+                                   @RequestParam (required = false) Integer minExperience,
+                                   @RequestParam (required = false) Integer maxExperience,
+                                   @RequestParam (required = false) Integer minLevel,
+                                   @RequestParam (required = false) Integer maxLevel,
+                                   @RequestParam (required = false) Boolean banned
     ) {
         return playerService.getAllPlayers(
                         Specification.where(playerService.filterByName(name)
@@ -83,8 +81,19 @@ public class PlayerController {
 
     @GetMapping("/players/{id}")
     public Player getPlayer(@PathVariable("id") String id) {
-        Long longId = playerService.checkAndParseId(id);
-        return playerService.getPlayer(longId);
+        return playerService.getPlayer(id);
+    }
+
+    @PostMapping("/players/")
+    public Player createPlayer(@RequestBody Player player) {
+        return playerService.createPlayer(player);
+    }
+
+    @PostMapping("/players/{id}")
+    public Player updatePlayer(@PathVariable("id") String id,
+                               @RequestBody Player updatedPlayer) {
+        Player currentPlayer = playerService.getPlayer(id);
+        return playerService.updatePlayer(currentPlayer, updatedPlayer);
     }
 
 }

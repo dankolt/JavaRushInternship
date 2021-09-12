@@ -3,7 +3,6 @@ package com.game.service;
 import com.game.entity.Player;
 import com.game.entity.Profession;
 import com.game.entity.Race;
-import com.game.exception.BadRequestException;
 import com.game.exception.NotFoundException;
 import com.game.repository.PlayerRepository;
 import org.slf4j.Logger;
@@ -14,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 
@@ -21,11 +22,13 @@ import java.util.List;
 public class PlayerServiceImpl implements PlayerService {
 
     private final PlayerRepository playerRepository;
+    private final PlayerValidator playerValidator;
     private final Logger log = LoggerFactory.getLogger(PlayerServiceImpl.class);
 
     @Autowired
-    public PlayerServiceImpl(PlayerRepository playerRepository) {
+    public PlayerServiceImpl(PlayerRepository playerRepository, PlayerValidator playerValidator) {
         this.playerRepository = playerRepository;
+        this.playerValidator = playerValidator;
     }
 
     @Override
@@ -115,37 +118,41 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     @Override
-    public Player getPlayer(Long id) {
-       return playerRepository.findById(id).orElseThrow(NotFoundException::new);
+    public Player getPlayer(String id) {
+        long idAsLong = playerValidator.validateId(id);
+        return playerRepository.findById(idAsLong).orElseThrow(NotFoundException::new);
     }
 
-    public Long checkAndParseId(String id) {
-        /*Не валидным считается id, если он:
-        - не числовой
-        - не целое число
-        - не положительный*/
-        String logMessage = "Bad query parameter: id = {}";
-        Long longId;
-
-        if (id == null || id.equals("")) {
-            log.error(logMessage, id);
-            throw new BadRequestException("Incorrect parameter: Id");
-        }
-
-        try {
-            longId = Long.parseLong(id);
-        } catch (NumberFormatException e) {
-            log.error(logMessage, id);
-            throw new BadRequestException("Id must be positive integer", e);
-        }
-
-        if (longId <= 0) {
-            log.error(logMessage, id);
-            throw new BadRequestException("Id must be positive integer");
-        }
-
-        return longId;
-
+    private Integer calculateCurrentLevel(Integer experience) {
+        //𝐿 = (√(2500 + 200·exp) − 50) / 100
+        double expression = (Math.sqrt(2500.0 + 200 * experience) - 50) / 100;
+        return BigDecimal.valueOf(expression).setScale(0, RoundingMode.HALF_UP).intValue();
     }
 
+    private Integer calculateUntilNextLevel(Integer level, Integer exp) {
+        //𝑁 = 50 ∙ (𝑙𝑣𝑙 + 1) ∙ (𝑙𝑣𝑙 + 2) − 𝑒𝑥𝑝
+        return 50 * (level + 1) * (level + 2) - exp;
+    }
+
+    @Override
+    public Player createPlayer(Player player) {
+
+        playerValidator.validateName(player);
+        playerValidator.validateTitle(player);
+        playerValidator.validateExperience(player);
+        playerValidator.validateBirthday(player);
+
+        player.setLevel(calculateCurrentLevel(player.getExperience()));
+        player.setUntilNextLevel(calculateUntilNextLevel(player.getLevel(), player.getExperience()));
+
+        playerRepository.save(player);
+
+        return player;
+    }
+
+    @Override
+    public Player updatePlayer(Player oldPlayer, Player newPlayer) {
+
+        return null;
+    }
 }

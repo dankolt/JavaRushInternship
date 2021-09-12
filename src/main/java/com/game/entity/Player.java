@@ -8,6 +8,8 @@ import java.util.Date;
 public class Player {
 
     @Id
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;                // ID игрока
 
     //Todo: понять нужно ли использовать nullable
@@ -20,7 +22,6 @@ public class Player {
     @Enumerated(EnumType.STRING)
     @Column(name = "race", nullable = false)
     private Race race;              // Раса персонажа
-
 
     @Enumerated(EnumType.STRING)
     @Column(name = "profession", nullable = false)
