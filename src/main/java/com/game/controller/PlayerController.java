@@ -95,4 +95,9 @@ public class PlayerController {
         return playerService.updatePlayer(id, updatedPlayer);
     }
 
+    @DeleteMapping("/players/{id}")
+    public void deletePlayer(@PathVariable("id") String id) {
+        playerService.deletePlayerById(id);
+    }
+
 }

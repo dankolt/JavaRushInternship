@@ -123,12 +123,10 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     private Integer calculateCurrentLevel(Integer experience) {
-        //𝐿 = (√(2500 + 200·exp) − 50) / 100
         return (int) (Math.sqrt(2500.0 + 200 * experience) - 50) / 100;
     }
 
     private Integer calculateUntilNextLevel(Integer level, Integer exp) {
-        //𝑁 = 50 ∙ (𝑙𝑣𝑙 + 1) ∙ (𝑙𝑣𝑙 + 2) − 𝑒𝑥𝑝
         return 50 * (level + 1) * (level + 2) - exp;
     }
 
@@ -151,16 +149,6 @@ public class PlayerServiceImpl implements PlayerService {
     @Override
     public Player updatePlayer(String id, Player updatedPlayer) {
         Player currentPlayer = getPlayer(id);
-
-        /*
-        name”:[String],
-        “title”:[String],
-        “race”:[Race], --optional
-        “profession”:[Profession], --optional
-        “birthday”:[Long], --optional
-        “banned”:[Boolean], --optional
-        “experience”:[Integer] --optional
-         */
 
         if (updatedPlayer.getName() != null && !updatedPlayer.getName().equals(currentPlayer.getName())) {
             playerValidator.validateName(updatedPlayer.getName());
@@ -199,5 +187,11 @@ public class PlayerServiceImpl implements PlayerService {
         }
 
         return playerRepository.save(currentPlayer);
+    }
+
+    @Override
+    public void deletePlayerById(String id) {
+        Player player = getPlayer(id);
+        playerRepository.delete(player);
     }
 }
