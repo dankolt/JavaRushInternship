@@ -23,7 +23,6 @@ public class PlayerServiceImpl implements PlayerService {
 
     private final PlayerRepository playerRepository;
     private final PlayerValidator playerValidator;
-    private final Logger log = LoggerFactory.getLogger(PlayerServiceImpl.class);
 
     @Autowired
     public PlayerServiceImpl(PlayerRepository playerRepository, PlayerValidator playerValidator) {
@@ -125,8 +124,7 @@ public class PlayerServiceImpl implements PlayerService {
 
     private Integer calculateCurrentLevel(Integer experience) {
         //𝐿 = (√(2500 + 200·exp) − 50) / 100
-        double expression = (Math.sqrt(2500.0 + 200 * experience) - 50) / 100;
-        return BigDecimal.valueOf(expression).setScale(0, RoundingMode.HALF_UP).intValue();
+        return (int) (Math.sqrt(2500.0 + 200 * experience) - 50) / 100;
     }
 
     private Integer calculateUntilNextLevel(Integer level, Integer exp) {
@@ -137,10 +135,10 @@ public class PlayerServiceImpl implements PlayerService {
     @Override
     public Player createPlayer(Player player) {
 
-        playerValidator.validateName(player);
-        playerValidator.validateTitle(player);
-        playerValidator.validateExperience(player);
-        playerValidator.validateBirthday(player);
+        playerValidator.validateName(player.getName());
+        playerValidator.validateTitle(player.getTitle());
+        playerValidator.validateExperience(player.getExperience());
+        playerValidator.validateBirthday(player.getBirthday());
 
         player.setLevel(calculateCurrentLevel(player.getExperience()));
         player.setUntilNextLevel(calculateUntilNextLevel(player.getLevel(), player.getExperience()));
@@ -151,8 +149,55 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     @Override
-    public Player updatePlayer(Player oldPlayer, Player newPlayer) {
+    public Player updatePlayer(String id, Player updatedPlayer) {
+        Player currentPlayer = getPlayer(id);
 
-        return null;
+        /*
+        name”:[String],
+        “title”:[String],
+        “race”:[Race], --optional
+        “profession”:[Profession], --optional
+        “birthday”:[Long], --optional
+        “banned”:[Boolean], --optional
+        “experience”:[Integer] --optional
+         */
+
+        if (updatedPlayer.getName() != null && !updatedPlayer.getName().equals(currentPlayer.getName())) {
+            playerValidator.validateName(updatedPlayer.getName());
+            currentPlayer.setName(updatedPlayer.getName());
+        }
+
+        if (updatedPlayer.getTitle() != null && !updatedPlayer.getTitle().equals(currentPlayer.getTitle())) {
+            playerValidator.validateName(updatedPlayer.getTitle());
+            currentPlayer.setTitle(updatedPlayer.getTitle());
+        }
+
+        if (updatedPlayer.getRace() != null && !updatedPlayer.getRace().equals(currentPlayer.getRace())) {
+            currentPlayer.setRace(updatedPlayer.getRace());
+        }
+
+        if (updatedPlayer.getProfession() != null && !updatedPlayer.getProfession().equals(currentPlayer.getProfession())) {
+            currentPlayer.setProfession(updatedPlayer.getProfession());
+        }
+
+        if (updatedPlayer.getBirthday() != null && !updatedPlayer.getBirthday().equals(currentPlayer.getBirthday())) {
+            playerValidator.validateBirthday(updatedPlayer.getBirthday());
+            currentPlayer.setBirthday(updatedPlayer.getBirthday());
+        }
+
+        if (updatedPlayer.getExperience() != null && !updatedPlayer.getExperience().equals(currentPlayer.getExperience())) {
+            playerValidator.validateExperience(updatedPlayer.getExperience());
+            currentPlayer.setExperience(updatedPlayer.getExperience());
+
+            Integer updatedLevel = calculateCurrentLevel(updatedPlayer.getExperience());
+            currentPlayer.setLevel(updatedLevel);
+            currentPlayer.setUntilNextLevel(calculateUntilNextLevel(updatedLevel, updatedPlayer.getExperience()));
+        }
+
+        if (updatedPlayer.getBanned() != null) {
+            currentPlayer.setBanned(updatedPlayer.getBanned());
+        }
+
+        return playerRepository.save(currentPlayer);
     }
 }

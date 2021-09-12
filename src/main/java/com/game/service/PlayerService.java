@@ -35,5 +35,5 @@ public interface PlayerService {
 
     Player createPlayer(Player player);
 
-    Player updatePlayer(Player id, Player player);
+    Player updatePlayer(String id, Player newPlayer);
 }

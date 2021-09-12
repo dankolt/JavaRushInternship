@@ -1,6 +1,5 @@
 package com.game.service;
 
-import com.game.entity.Player;
 import com.game.exception.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,34 +36,30 @@ public class PlayerValidator {
         return longId;
     }
 
-    void validateName(Player player) {
-        String name = player.getName();
+    void validateName(String name) {
         if (name == null || name.isEmpty() || name.length() > 12) {
             log.warn("Bad query parameter: name = {}", name);
             throw new BadRequestException("Name must not be empty or greater then 12 symbols");
         }
     }
 
-    void validateTitle(Player player) {
-        String title = player.getTitle();
+    void validateTitle(String title) {
         if (title == null || title.isEmpty() || title.length() > 30) {
             log.warn("Bad query parameter: title = {}", title);
             throw new BadRequestException("Title must not be empty or greater then 30 symbols");
         }
     }
 
-    void validateExperience(Player player) {
-        Integer exp = player.getExperience();
+    void validateExperience(Integer exp) {
         if (exp == null || exp < 0 || exp > 10_000_000) {
             log.warn("Bad query parameter: experience = {}", exp);
             throw new BadRequestException("Experience must not be empty or less then 0 or greater then 10.000.000 symbols");
         }
     }
 
-    void validateBirthday(Player player) {
+    void validateBirthday(Date birthday) {
         int minPossibleYear = 2000;
         int maxPossibleYear = 3000;
-        Date birthday = player.getBirthday();
 
         if (birthday != null) {
             Calendar calendar = Calendar.getInstance();
@@ -79,7 +74,5 @@ public class PlayerValidator {
             throw new BadRequestException("Birthday must not be empty");
         }
     }
-
-
 
 }

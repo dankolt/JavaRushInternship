@@ -92,8 +92,7 @@ public class PlayerController {
     @PostMapping("/players/{id}")
     public Player updatePlayer(@PathVariable("id") String id,
                                @RequestBody Player updatedPlayer) {
-        Player currentPlayer = playerService.getPlayer(id);
-        return playerService.updatePlayer(currentPlayer, updatedPlayer);
+        return playerService.updatePlayer(id, updatedPlayer);
     }
 
 }
