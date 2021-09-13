@@ -33,6 +33,7 @@ public class PlayerValidator {
             log.warn(logMessage, id);
             throw new BadRequestException("Id must be positive integer");
         }
+
         return longId;
     }
 
